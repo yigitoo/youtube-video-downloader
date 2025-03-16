@@ -6,10 +6,6 @@ __pycache__/
 # C extensions
 *.so
 
-# Private settings
-client_secrets.json
-credentials.json
-
 # Distribution / packaging
 .Python
 build/
@@ -177,3 +173,6 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 .qodo
+
+# Private Settings
+client_secrets.json

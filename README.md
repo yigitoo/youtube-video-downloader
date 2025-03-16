@@ -2,7 +2,7 @@
 
 ## A script for YouTube Video Downloader.
 
-- Get the <code>client_secret.json</code> from Google Cloud Console.
+- Get the <code>client_secrets.json</code> from Google Cloud Console.
 
 ```bash
 $ pip3 install -r requirements.txt

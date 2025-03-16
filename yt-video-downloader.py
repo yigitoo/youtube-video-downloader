@@ -7,4 +7,6 @@
 @description: This file is main script of the project.
 """
 
-from src.drive import login
+from youtube import __file__
+
+print(__file__)

@@ -174,5 +174,6 @@ cython_debug/
 .pypirc
 .qodo
 
-# Private Settings
+# Private Settings for This Project (YouTube Video Downloader)
 client_secrets.json
+credentials.json

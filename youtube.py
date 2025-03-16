@@ -14,18 +14,20 @@ from pytubefix import (
   Playlist
 )
 from pytubefix.cli import on_progress
-import ffmpeg
+from moviepy import VideoFileClip, AudioFileClip
 
 from pathlib import Path
 import os
 import tempfile
+
+from utils import touch
 
 class YouTubeAPI:
   def __init__(self, folder_name: str = 'videos'):
     self.default_folder_name = folder_name
 
 
-  def download_video(self, video_url: str) -> None:
+  def download_video(self, video_url: str, filename: str | None = None) -> None:
     """
     YouTube'dan video indirir
 
@@ -33,53 +35,49 @@ class YouTubeAPI:
       video_url: İndirilecek video URL'si
       folder_path: İndirilen video dosyasının kaydedileceği yol
     """
-    try:
 
-      # Youtube Client
-      yt = YouTube(video_url, on_progress_callback=on_progress)
 
-      # Dosya adını belirleme
+    # Youtube Client
+    yt = YouTube(video_url, on_progress_callback=on_progress)
+
+    # Dosya adını belirleme
+    if filename in [None, '']:
       filename = yt.title
 
-      Path(filename+'.mp4').touch()
 
-      # Video ve Ses Streamlerini al
-      video_stream = yt.streams.get_highest_resolution()
-      audio_stream = yt.streams.filter(only_audio=True, file_extension="mp4").first()
+    # Video ve Ses Streamlerini al
+    video_stream = yt.streams.get_highest_resolution()
+    audio_stream = yt.streams.filter(only_audio=True, file_extension="mp4").first()
 
-      # Video ve sesi indir.
-      temp_dir = tempfile.gettempdir()
+    # Video ve sesi indir.
+    temp_dir = tempfile.gettempdir()
 
-      video_file_name = filename+'_video.mp4'
-      audio_file_name = filename+'_audio.mp4'
+    video_file_name = filename+'_video.mp4'
+    audio_file_name = filename+'_audio.mp4'
 
-      file_paths = [
-        filename+'.mp4',
-        os.path.join(temp_dir, video_file_name),
-        os.path.join(temp_dir, audio_file_name)
-      ]
-      for fp in file_paths:
-        if os.path.exists(fp):
-            os.remove(fp)
+    file_paths = [
+      filename+'.mp4',
+      os.path.join(temp_dir, video_file_name),
+      os.path.join(temp_dir, audio_file_name)
+    ]
+    for fp in file_paths:
+      if os.path.exists(fp):
+          os.remove(fp)
 
-      video_path = video_stream.download(output_path=temp_dir, filename=video_file_name)
-      audio_path = audio_stream.download(output_path=temp_dir, filename=audio_file_name)
+    video_path = video_stream.download(output_path=temp_dir, filename=video_file_name)
+    audio_path = audio_stream.download(output_path=temp_dir, filename=audio_file_name)
 
-      # Video ve sesi birleştir
-      video_input = ffmpeg.input(video_path)
-      audio_input = ffmpeg.input(audio_path)
+    # Video ve sesi birleştir
+    video_clip = VideoFileClip(video_path)
+    audio_clip = AudioFileClip(audio_path)
 
+    final_clip = video_clip.with_audio(audio_clip)
+    final_clip.write_videofile(filename+'.mp4')
 
-      merge_output = ffmpeg.output(video_input, audio_input, filename+'.mp4', format='mp4', vcodec="copy", acodec="aac")
+    # Dosyaları sil
+    os.remove(video_path)
+    os.remove(audio_path)
 
-      merge_output.run(overwrite_output=True)
-
-      # Dosyaları sil
-      os.remove(video_path)
-      os.remove(audio_path)
-    except Exception as e:
-      print(f'Error: {e}')
-      print('Video download failed!')
 
   def download_playlist(self, playlist_url: str, folder_name: str | None) -> None:
     """
@@ -141,4 +139,4 @@ class YouTubeAPI:
 
 if __name__ == '__main__':
   yt = YouTubeAPI()
-  yt.download_video('https://www.youtube.com/watch?v=9bZkp7q19f0')
+  yt.download_video('https://www.youtube.com/watch?v=9bZkp7q19f0', 'Gangnam_Style')
